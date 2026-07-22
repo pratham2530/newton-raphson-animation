@@ -8,26 +8,28 @@ Example animation: (*converted to a gif for the README*)
 
 ![Newton-Raphson animation](docs/demo.gif)
 
+Input form: 
+
+<img src="docs/images/input_form.png" width="500" alt="Input form">
+
 ## Features
 
 - LaTeX input with validation: parse errors, multi-variable functions, and
   undefined starting points are rejected before render
 
-  <img src="docs/images/input_form.png" width="700" alt="Input form">
+  <img src="docs/images/error.png" width="500" alt="Error">
   
 - Built-in constants
 
-  <img src="docs/images/constants_table.png" width="700" alt="Constants table">
+  <img src="docs/images/constants_table.png" width="500" alt="Constants table">
   
 - Users can add constants via an editable table
 
-  <img src="docs/images/add_user_constants.png" width="700" alt="Add user constants">
+  <img src="docs/images/add_user_constants.png" width="500" alt="Add user constants">
 
 - Non-blocking and cancellable render
 
-  <img src="docs/images/animation_mid_render.png" width="700" alt="Animation mid render">
-  
-- Animated tangent-line construction, auto-zoom per step and freeze on final iteration
+  <img src="docs/images/animation_mid_render.png" width="500" alt="Animation mid render">
 
 - Final answer simplified to closed form where one exists (e.g. `sqrt(2)`,
   instead of `1.41421356...`)
@@ -50,12 +52,14 @@ streamlit run main.py
 
 ## Project structure
 
-`main.py` 
-`gui.py`: streamlit front-end: input form, validation and output
-`animation.py`: iteration sequence and matplotlib animation
-`constants.py`: built-in constant name to sympy value mapping
+```
+.
+├── main.py           # launches GUI
+├── gui.py             # streamlit front-end 
+├── animation.py        # iteration sequence and matplotlib animation
+└── constants.py         # built-in constants
+```
 
 ## Extensions (soon)
 
-- 3D animation via Manim
-- Newton fractals
+3D animation in Manim and/or Newton fractals. 
