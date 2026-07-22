@@ -60,6 +60,31 @@ streamlit run main.py
 └── constants.py         # built-in constants
 ```
 
+## Notes
+
+### Threading model
+
+Streamlit reruns the full script on every interaction with no partial yield, so rendering inline would freeze the UI for the full encode time. Render runs on a background thread instead — `start_render()` spawns it and returns immediately, while the main thread keeps rerunning to draw progress and stay responsive to stop.
+
+Streamlit only allows `st.session_state` writes from the main thread (tracked via `ScriptRunContext`, which spawned threads don't have), so the worker writes only to a plain dict, `result_box`. `render_progress()`, a `@st.fragment(run_every=0.5)`, is the only place that polls it and copies a finished result into session_state.
+
+Cancellation is cooperative: stop sets a `threading.Event`, checked once per frame by FFMpegWriter's `progress_callback`, which raises `RenderCancelled` to unwind (can lag up to one frame). `daemon=True` keeps the worker from blocking process exit.
+
+### Convergence behaviour
+Newton-Raphson has quadratic convergence near a root so correct digits roughly double with each iteration. 
+For most well-behaved functions, we do not need more than 10 iterations since floats carry 15-17 significant decimal digits. 
+The ceiling of 15 is for  slower cases including starting values far from the root. 
+
+#### Tolerances
+`_check_stationary_point()`, tol=1e-8: rejects a derivative too close to zero
+`_check_convergence()`, tol=1e-4: rejects a final residual not close enough to zero
+
+### Encoding choices
+GIF's 256-colour palette produces banding on anti-aliased matplotlib output but H.264 compresses continuous-tone renders way better. 
+Since st.video() expects a video container, GIF would require st.image and would lose playback controls. 
+ffmpeg exposes encoding controls that GIF encoders don't such as `-preset` ultrafast, `dpi=80` for encode speed, and `-pix_fmt yuv420p` for compatibility. 
+
+
 ## Extensions (soon)
 
 3D animation in Manim and/or Newton fractals. 
