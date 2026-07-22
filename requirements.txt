@@ -1,0 +1,6 @@
+matplotlib
+numpy
+sympy
+latex2sympy2-extended
+pandas
+streamlit
