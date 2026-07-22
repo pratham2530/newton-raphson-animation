@@ -25,7 +25,7 @@ Input form:
   
 - Users can add constants via an editable table
 
-  <img src="docs/images/add_user_constants.png" width="500" alt="Add user constants">
+  <img src="docs/images/add_user_constants.png" width="200" alt="Add user constants">
 
 - Non-blocking and cancellable render
 
@@ -34,7 +34,7 @@ Input form:
 - Final answer simplified to closed form where one exists (e.g. `sqrt(2)`,
   instead of `1.41421356...`)
 
-  <img src="docs/images/figure.png" width="700" alt="Figure">
+  <img src="docs/images/figure.png" width="500" alt="Figure">
 
 ## Requirements
 
