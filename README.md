@@ -63,12 +63,18 @@ streamlit run main.py
 ## Notes
 
 ### Threading model
+Running the FFPMeg rendering in the main thread causes the UI to freeze. 
+Hence, the`start_render()` spawns the background, or worker, thread to render the animation while the main thread keeps rerunning to display the progress and stay responsive to the "stop" button. 
 
-Streamlit reruns the full script on every interaction with no partial yield, so rendering inline would freeze the UI for the full encode time. Render runs on a background thread instead — `start_render()` spawns it and returns immediately, while the main thread keeps rerunning to draw progress and stay responsive to stop.
+Streamlit only allows `st.session_state` writes from the main thread tracked via `ScriptRunContext`. 
+However, spawned threads from the main thread do not have `ScriptRunContext`. 
+Thus, the main thread writes to the plain dict `result_box`. 
+The main thread polls for updates through the `render_progress()` function which copies a finished result into `st.session_state` via the `result_box`.
 
-Streamlit only allows `st.session_state` writes from the main thread (tracked via `ScriptRunContext`, which spawned threads don't have), so the worker writes only to a plain dict, `result_box`. `render_progress()`, a `@st.fragment(run_every=0.5)`, is the only place that polls it and copies a finished result into session_state.
-
-Cancellation is cooperative: stop sets a `threading.Event`, checked once per frame by FFMpegWriter's `progress_callback`, which raises `RenderCancelled` to unwind (can lag up to one frame). `daemon=True` keeps the worker from blocking process exit.
+Python threads cannot be killed forcibly from the outside hence cancelling the render is cooperative. 
+The main thread calls `set()` if the "stop" button is clicked and periodically, every 0.5 seconds, the worker thread checks the stopping event occurs via `is_set()`.  
+FFPMegWriter's `progress_callback` raises a `RenderCancelled` exception to close the writer, close any temporary files and mark the job cancelled in the shared state before exiting the thread function. 
+`daemon=True` keeps the workerthread from blocking the process exit.
 
 ### Convergence behaviour
 Newton-Raphson has quadratic convergence near a root so correct digits roughly double with each iteration. 
@@ -76,14 +82,13 @@ For most well-behaved functions, we do not need more than 10 iterations since fl
 The ceiling of 15 is for  slower cases including starting values far from the root. 
 
 #### Tolerances
-`_check_stationary_point()`, tol=1e-8: rejects a derivative too close to zero
-`_check_convergence()`, tol=1e-4: rejects a final residual not close enough to zero
+`_check_stationary_point()` has the arguement `tol=1e-8` for rejecting a derivative too close to zero. 
+`_check_convergence()` has the arguement `tol=1e-4` for rejecting a final residual not close enough to zero. 
 
 ### Encoding choices
 GIF's 256-colour palette produces banding on anti-aliased matplotlib output but H.264 compresses continuous-tone renders way better. 
-Since st.video() expects a video container, GIF would require st.image and would lose playback controls. 
-ffmpeg exposes encoding controls that GIF encoders don't such as `-preset` ultrafast, `dpi=80` for encode speed, and `-pix_fmt yuv420p` for compatibility. 
-
+Since `st.video()` expects a video container, GIF would require `st.image()` and would lose playback controls. 
+FFPMeg exposes encoding controls that GIF encoders don't such as `-preset` ultrafast, `dpi=80` for encode speed, and `-pix_fmt yuv420p` for compatibility. 
 
 ## Extensions (soon)
 
