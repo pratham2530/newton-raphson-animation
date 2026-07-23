@@ -63,7 +63,7 @@ streamlit run main.py
 ## Notes
 
 ### Threading model
-Running the FFPMeg rendering in the main thread causes the UI to freeze. 
+Running the FFMpeg rendering in the main thread causes the UI to freeze. 
 Hence, the`start_render()` spawns the background, or worker, thread to render the animation while the main thread keeps rerunning to display the progress and stay responsive to the "stop" button. 
 
 Streamlit only allows `st.session_state` writes from the main thread tracked via `ScriptRunContext`. 
@@ -73,7 +73,7 @@ The main thread polls for updates through the `render_progress()` function which
 
 Python threads cannot be killed forcibly from the outside hence cancelling the render is cooperative. 
 The main thread calls `set()` if the "stop" button is clicked and periodically, every 0.5 seconds, the worker thread checks the stopping event occurs via `is_set()`.  
-FFPMegWriter's `progress_callback` raises a `RenderCancelled` exception to close the writer, close any temporary files and mark the job cancelled in the shared state before exiting the thread function. 
+FFMpegWriter's `progress_callback` raises a `RenderCancelled` exception to close the writer, close any temporary files and mark the job cancelled in the shared state before exiting the thread function. 
 `daemon=True` keeps the workerthread from blocking the process exit.
 
 ### Convergence behaviour
@@ -88,7 +88,7 @@ The ceiling of 15 is for  slower cases including starting values far from the ro
 ### Encoding choices
 GIF's 256-colour palette produces banding on anti-aliased matplotlib output but H.264 compresses continuous-tone renders way better. 
 Since `st.video()` expects a video container, GIF would require `st.image()` and would lose playback controls. 
-FFPMeg exposes encoding controls that GIF encoders don't such as `-preset` ultrafast, `dpi=80` for encode speed, and `-pix_fmt yuv420p` for compatibility. 
+FFMpeg exposes encoding controls that GIF encoders don't such as `-preset` ultrafast, `dpi=80` for encode speed, and `-pix_fmt yuv420p` for compatibility. 
 
 ## Extensions (soon)
 
