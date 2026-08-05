@@ -73,7 +73,9 @@ The main thread polls for updates through the `render_progress()` function which
 
 Python threads cannot be killed forcibly from the outside hence cancelling the render is cooperative. 
 The main thread calls `set()` if the "stop" button is clicked and periodically, every 0.5 seconds, the worker thread checks the stopping event occurs via `is_set()`.  
+
 FFMpegWriter's `progress_callback` raises a `RenderCancelled` exception to close the writer, close any temporary files and mark the job cancelled in the shared state before exiting the thread function. 
+
 `daemon=True` keeps the workerthread from blocking the process exit.
 
 ### Convergence behaviour
