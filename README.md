@@ -64,11 +64,11 @@ streamlit run main.py
 
 ### Threading model
 Running the FFMpeg rendering in the main thread causes the UI to freeze. 
-Hence, the`start_render()` spawns the background, or worker, thread to render the animation while the main thread keeps rerunning to display the progress and stay responsive to the "stop" button. 
+Hence, the `start_render()` spawns the background, or worker, thread to render the animation while the main thread keeps rerunning to display the progress and stay responsive to the "stop" button. 
 
 Streamlit only allows `st.session_state` writes from the main thread tracked via `ScriptRunContext`. 
 However, spawned threads from the main thread do not have `ScriptRunContext`. 
-Thus, the main thread writes to the plain dict `result_box`. 
+Thus, the worker thread writes to the plain dict `result_box`. 
 The main thread polls for updates through the `render_progress()` function which copies a finished result into `st.session_state` via the `result_box`.
 
 Python threads cannot be killed forcibly from the outside hence cancelling the render is cooperative. 
@@ -76,16 +76,16 @@ The main thread calls `set()` if the "stop" button is clicked and periodically, 
 
 FFMpegWriter's `progress_callback` raises a `RenderCancelled` exception to close the writer, close any temporary files and mark the job cancelled in the shared state before exiting the thread function. 
 
-`daemon=True` keeps the workerthread from blocking the process exit.
+`daemon=True` keeps the worker thread from blocking the process exit.
 
 ### Convergence behaviour
 Newton-Raphson has quadratic convergence near a root so correct digits roughly double with each iteration. 
 For most well-behaved functions, we do not need more than 10 iterations since floats carry 15-17 significant decimal digits. 
-The ceiling of 15 is for  slower cases including starting values far from the root. 
+The ceiling of 15 is for slower cases including starting values far from the root. 
 
 #### Tolerances
-`_check_stationary_point()` has the arguement `tol=1e-8` for rejecting a derivative too close to zero. 
-`_check_convergence()` has the arguement `tol=1e-4` for rejecting a final residual not close enough to zero. 
+`_check_stationary_point()` has the argument `tol=1e-8` for rejecting a derivative too close to zero. 
+`_check_convergence()` has the argument `tol=1e-4` for rejecting a final residual not close enough to zero. 
 
 ### Encoding choices
 GIF's 256-colour palette produces banding on anti-aliased matplotlib output but H.264 compresses continuous-tone renders way better. 
